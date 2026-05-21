@@ -1,0 +1,24 @@
+{
+  "name": "nexus-linux-terminal-game",
+  "version": "1.0.0",
+  "description": "Full-stack HTB-style Linux Terminal Simulator for teaching Linux commands with session cookies",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "express",
+    "terminal",
+    "game",
+    "linux",
+    "learning"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
+  }
+}

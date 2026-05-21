@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LETS KNOW LINUX // RETRO TERMINAL CHALLENGE</title>
+  <!-- SEO Meta -->
+  <meta name="description" content="Cyberpunk retro-terminal Linux simulator teaching shell commands on a vintage CRT monitor with session cookies.">
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['Fira Code', 'monospace'],
+            retro: ['Share Tech Mono', 'monospace'],
+            pixel: ['VT323', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Phosphor Variable Design System */
+    :root {
+      --phosphor: #ffb000;         /* Amber Default */
+      --phosphor-dim: #cca000;
+      --phosphor-bg: rgba(255, 176, 0, 0.08);
+      --phosphor-border: rgba(255, 176, 0, 0.22);
+      --phosphor-glow: 0 0 6px rgba(255, 176, 0, 0.35);
+      --monitor-bezel: #25221d;
+    }
+    
+    .theme-green {
+      --phosphor: #00ff66;         /* Phosphor Green */
+      --phosphor-dim: #00cc52;
+      --phosphor-bg: rgba(0, 255, 102, 0.08);
+      --phosphor-border: rgba(0, 255, 102, 0.22);
+      --phosphor-glow: 0 0 6px rgba(0, 255, 102, 0.35);
+    }
+
+    .theme-cyan {
+      --phosphor: #00e5ff;         /* Cyber Cyan */
+      --phosphor-dim: #00b8cc;
+      --phosphor-bg: rgba(0, 229, 255, 0.08);
+      --phosphor-border: rgba(0, 229, 255, 0.22);
+      --phosphor-glow: 0 0 6px rgba(0, 229, 255, 0.35);
+    }
+
+    body {
+      background-color: #050402;
+      color: var(--phosphor);
+    }
+
+    /* Apply glow only to specific retro elements, not small text logs */
+    .glow-text, h2, h3, #hud-level-title, .font-retro {
+      text-shadow: var(--phosphor-glow) !important;
+    }
+
+    /* Force all text overrides to respect the active phosphor color mode */
+    .p-text, .text-slate-300, .text-slate-350, .text-slate-400, .text-slate-500,
+    .text-cyan-500, .text-emerald-400, .text-amber-400, .text-white, .text-htb-green {
+      color: var(--phosphor) !important;
+    }
+    
+    .p-bg {
+      background-color: var(--phosphor-bg) !important;
+    }
+
+    .p-border, .border-htb-border, .border-slate-800, .border-slate-700 {
+      border-color: var(--phosphor-border) !important;
+    }
+
+    /* CRT Screen Glare & Curve Overlay */
+    .crt-screen-container {
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.95),
+                  inset 0 0 25px var(--phosphor-bg);
+      border-radius: 12px;
+    }
+
+    .glare-overlay {
+      background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.008) 40%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    /* CRT Beam Shutoff Animation */
+    @keyframes turn-off {
+      0% { transform: scale(1, 1) translate3d(0, 0, 0); filter: brightness(1); opacity: 1; }
+      40% { transform: scale(1, 0.002) translate3d(0, 0, 0); filter: brightness(10); opacity: 1; }
+      100% { transform: scale(0, 0) translate3d(0, 0, 0); filter: brightness(30); opacity: 0; }
+    }
+    @keyframes turn-on {
+      0% { transform: scale(1, 0.002) translate3d(0, 0, 0); filter: brightness(12); opacity: 0; }
+      60% { transform: scale(1, 1.1) translate3d(0, 0, 0); filter: brightness(3); opacity: 1; }
+      100% { transform: scale(1, 1) translate3d(0, 0, 0); filter: brightness(1); opacity: 1; }
+    }
+    .screen-shutting-off {
+      animation: turn-off 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+    .screen-powering-on {
+      animation: turn-on 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+
+    /* Scanlines Overlay */
+    .scanlines::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+      background-size: 100% 4px;
+      z-index: 22;
+      pointer-events: none;
+    }
+
+    /* CRT Flicker */
+    @keyframes crt-flicker {
+      0% { opacity: 0.985; }
+      50% { opacity: 1; }
+      100% { opacity: 0.99; }
+    }
+    .crt-flicker { animation: crt-flicker 0.18s infinite; }
+
+    /* Screen shake on invalid commands */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+    .shake-anim { animation: shake 0.3s ease-in-out; }
+
+    /* Custom scrollbars */
+    #terminal-screen::-webkit-scrollbar, .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    #terminal-screen::-webkit-scrollbar-track, .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.4);
+    }
+    #terminal-screen::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-thumb {
+      background: var(--phosphor-border);
+      border-radius: 3px;
+    }
+
+    /* Input Caret Blinking */
+    #terminal-input {
+      caret-color: var(--phosphor);
+      text-shadow: var(--phosphor-glow);
+    }
+  </style>
+</head>
+<body class="h-full font-mono flex flex-col justify-between overflow-x-hidden p-3 md:p-6 md:pb-3">
+
+  <!-- LOCAL PROTOCOL WARNING -->
+  <div id="protocol-warning" class="bg-amber-950/70 border-b border-amber-500/20 text-amber-300 text-xs py-2 px-6 text-center hidden z-50 shrink-0">
+    ⚠️ <strong>CRT HARDWARE ERROR</strong>: Local file protocol detected (file://). Please load from
+    <a href="http://localhost:3000" class="underline font-bold hover:text-white">http://localhost:3000</a> to initialize session modules.
+  </div>
+
+  <!-- MAIN MONITOR ASSEMBLY (CRT BEZEL WRAPPER) -->
+  <div class="grow w-full max-w-7xl mx-auto bg-[#1a1714] border-[12px] border-[#221f1b] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_3px_8px_rgba(255,255,255,0.05),inset_0_-8px_15px_rgba(0,0,0,0.9)] rounded-[32px] p-4 flex flex-col justify-between overflow-hidden relative">
+    
+    <!-- Screen Glass Outer Glow/Rim -->
+    <div class="absolute inset-0 border-[3px] border-[#100f0d] rounded-[20px] pointer-events-none z-30"></div>
+
+    <!-- MAIN GRID INSIDE MONITOR BEZEL -->
+    <div id="monitor-screen-contents" class="grow flex flex-col lg:flex-row gap-4 overflow-hidden rounded-xl bg-[#030201] p-2 md:p-4 crt-screen-container scanlines crt-flicker">
+      
+      <!-- Screen Glare Layer -->
+      <div class="absolute inset-0 glare-overlay pointer-events-none"></div>
+
+      <!-- LEFT SIDEBAR PANEL (Controls & Objective List) -->
+      <section class="w-full lg:w-80 flex flex-col gap-4 shrink-0 justify-between lg:h-full z-10 overflow-y-auto custom-scroll pr-1">
+        
+        <!-- CRT HEADER STATS -->
+        <div class="border p-3 rounded-lg p-bg p-border">
+          <div class="flex items-center justify-between border-b pb-1.5 p-border mb-2">
+            <span class="font-retro text-2xl tracking-wider font-bold">LETS KNOW LINUX</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+          </div>
+          <p class="text-[10px] uppercase font-bold tracking-wider">UNIT STATE: ACTIVE_SHELL</p>
+          <p class="text-[10px] uppercase tracking-wider text-slate-500" id="live-time">TIME: 20:29:14</p>
+        </div>
+
+        <!-- LEVEL TASK MONITOR -->
+        <div class="border p-3.5 rounded-lg p-bg p-border flex flex-col space-y-3.5">
+          <div class="border-b pb-2 p-border">
+            <span class="text-[10px] tracking-widest font-bold block uppercase">TARGET SYSTEM</span>
+            <h2 id="hud-level-title" class="font-retro text-2xl font-bold tracking-wide">LEVEL 1: INITIAL COMPROMISE</h2>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] mb-1.5">
+              <span>DECRYPTION PROGRESS</span>
+              <span id="hud-progress-text" class="font-bold">33%</span>
+            </div>
+            <div class="w-full bg-black/40 rounded border p-0.5 p-border overflow-hidden">
+              <div id="hud-progress-bar" class="h-2 rounded-sm transition-all duration-500" style="background-color: var(--phosphor); width: 33%;"></div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider block">Objectives:</span>
+            <div id="hud-objectives" class="space-y-2">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- CRYPTOGRAPHIC SUBMISSION DECK -->
+        <div class="border p-3.5 rounded-lg p-bg p-border flex flex-col space-y-3">
+          <div class="border-b pb-1.5 p-border">
+            <span class="text-[10px] tracking-widest font-bold uppercase block">FLAG SUBMISSION MATRIX</span>
+          </div>
+          
+          <div class="space-y-2.5">
+            <input type="text" id="flag-input" 
+                   placeholder="LKL{flag_hash_hex}" 
+                   class="w-full bg-black/60 border rounded px-3 py-1.5 text-xs font-mono placeholder-amber-700/50 outline-none transition focus:border-amber-500 text-center uppercase p-border">
+            <button id="flag-submit-btn" onclick="submitLevelFlag()" 
+                    class="w-full font-retro text-2xl border py-1 px-4 rounded hover:bg-white/5 active:bg-white/10 transition cursor-pointer p-border">
+              [ SUBMIT KEY TOKEN ]
+            </button>
+          </div>
+
+          <div id="flag-feedback" class="text-xs text-center border p-2 rounded hidden p-border">
+            <!-- Dynamic submission comments -->
+          </div>
+        </div>
+
+        <!-- EXFILTRATED DIRECTORY STRUCTURE -->
+        <div class="border p-3.5 rounded-lg p-bg p-border flex flex-col space-y-2.5 grow">
+          <div class="border-b pb-1.5 p-border">
+            <span class="text-[10px] tracking-widest font-bold uppercase block">WORKSPACE DIRECTORY</span>
+          </div>
+          <div id="file-tree" class="text-xs space-y-2 grow pt-1">
+            <!-- File listings -->
+          </div>
+        </div>
+
+        <!-- CHEAT-SHEET ACTION MATRIX -->
+        <div class="border p-3 rounded-lg p-bg p-border">
+          <div class="border-b pb-1.5 p-border mb-2">
+            <span class="text-[10px] tracking-widest font-bold uppercase">CHEATSHEET CODES</span>
+          </div>
+          <div id="hud-commands" class="grid grid-cols-2 gap-2 text-[10px]">
+            <!-- Command macros -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT PANEL: CRT CONSOLE SCREEN -->
+      <section class="grow flex flex-col h-[400px] lg:h-full justify-between relative z-10 border rounded-xl overflow-hidden p-border">
+        
+        <!-- Screen Power Indicator -->
+        <div class="bg-[#050301] border-b px-4 py-2 flex items-center justify-between select-none shrink-0 p-border">
+          <div class="flex items-center space-x-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.7)]" id="power-led"></div>
+            <span class="text-xs font-retro tracking-widest font-bold uppercase">MONITOR OUTPUT // DISK SYSTEM</span>
+          </div>
+          
+          <div class="flex items-center space-x-4 font-mono">
+            <div id="footer-history-size" class="text-[10px] tracking-widest opacity-60">History: 0 cmds</div>
+            <div id="typing-status" class="text-[10px] tracking-widest opacity-40 font-bold">INPUT: IDLE</div>
+          </div>
+        </div>
+
+        <!-- Command Screen Buffer -->
+        <div id="terminal-screen" class="grow p-5 overflow-y-auto flex flex-col space-y-3 font-mono text-sm leading-relaxed bg-[#020100]" onclick="focusConsoleInput()">
+          <div id="terminal-history" class="space-y-3">
+            <!-- Appended outputs -->
+          </div>
+          
+          <!-- Input Command Line -->
+          <div id="input-line-container" class="flex items-start space-x-2 pt-2 shrink-0 text-[15px] tracking-wide">
+            <span id="terminal-prompt-prefix" class="font-bold shrink-0 select-none">user@letsknowlinux:~$</span>
+            <div class="relative grow flex items-center">
+              <span id="autocomplete-suggestion" class="absolute left-0 top-0 opacity-20 pointer-events-none select-none font-mono text-[15px] tracking-wide"></span>
+              <input type="text" id="terminal-input" 
+                     class="w-full bg-transparent border-0 outline-none p-0 font-mono text-[15px] tracking-wide" 
+                     autofocus autocomplete="off" spellcheck="false"
+                     oninput="onInputChanged(this)"
+                     onkeydown="handleTerminalKeys(event)">
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- PHYSICAL BEZEL LOWER BAR (DIALS AND SWITCHES) -->
+    <div class="h-10 mt-3 flex justify-between items-center px-4 border-t border-black/40 pt-3 select-none">
+      
+      <!-- Retro dials -->
+      <div class="flex items-center space-x-6 text-xs text-slate-500 font-retro">
+        
+        <!-- Phosphor Color Slider Switch -->
+        <div class="flex items-center space-x-2">
+          <span>PHOSPHOR:</span>
+          <div class="flex border border-slate-700 bg-black/60 rounded overflow-hidden">
+            <button onclick="setTheme('green')" id="theme-btn-green" class="px-2 py-0.5 text-[10px] font-bold text-slate-650 cursor-pointer">GREEN</button>
+            <button onclick="setTheme('amber')" id="theme-btn-amber" class="px-2 py-0.5 text-[10px] font-bold text-slate-650 cursor-pointer">AMBER</button>
+            <button onclick="setTheme('cyan')" id="theme-btn-cyan" class="px-2 py-0.5 text-[10px] font-bold text-slate-650 cursor-pointer">CYAN</button>
+          </div>
+        </div>
+
+        <!-- Scanline switch -->
+        <div class="flex items-center space-x-2">
+          <span>SCANLINES:</span>
+          <button id="scanline-switch-btn" onclick="toggleScanlines()" class="border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-amber-500 cursor-pointer">ACTIVE</button>
+        </div>
+
+        <!-- Audio hum dial -->
+        <div class="flex items-center space-x-2">
+          <span>AUDIO HUM:</span>
+          <button id="hum-switch-btn" onclick="toggleHum()" class="border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-slate-600 cursor-pointer">MUTED</button>
+        </div>
+      </div>
+
+      <!-- Master power button dial -->
+      <div class="flex items-center space-x-2 font-retro text-xs text-slate-500">
+        <span>POWER DIAL:</span>
+        <button onclick="toggleMonitorPower()" id="power-dial-btn" class="w-7 h-7 rounded-full border border-rose-500/30 bg-[#2d1212]/50 hover:bg-[#3d1212]/60 hover:border-rose-500/60 active:scale-95 transition flex items-center justify-center cursor-pointer text-[10px] text-rose-500 font-bold shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
+          I/O
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- STATUS FOOTER BAR -->
+  <footer class="mt-2 text-slate-800 text-[10px] text-center uppercase tracking-widest font-mono">
+    LETS KNOW LINUX INTEGRATED INTRUSION SIMULATOR // SESSION ENCRYPTION STANDARD SECURE // STATUS: SYNCHRONIZED
+  </footer>
+
+  <!-- SOUND FILES AND FRONTEND SCRIPT MATRIX -->
+  <script>
+    // --- ADVANCED AUDIO ENGINE ---
+    const AudioEngine = {
+      ctx: null,
+      muted: false,
+      humMuted: true,
+      humNode: null,
+      gainNode: null,
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+
+      playTone(frequency, type, duration, volume = 0.1, decay = true) {
+        if (this.muted) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = type;
+          osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
+          gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+          
+          if (decay) {
+            gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          } else {
+            gain.gain.setValueAtTime(volume, this.ctx.currentTime + duration - 0.02);
+            gain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          }
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      },
+
+      playClick() {
+        // High frequency transient click
+        this.playTone(900, 'sine', 0.02, 0.015);
+      },
+
+      playSubmit() {
+        // Clunky enter press key click
+        this.playTone(280, 'triangle', 0.06, 0.05);
+      },
+
+      playError() {
+        // Lower buzzing alert frequency
+        this.playTone(150, 'sawtooth', 0.22, 0.06);
+      },
+
+      playSuccess() {
+        if (this.muted) return;
+        this.init();
+        // Ascending retro chiptune notes
+        const scale = [293.66, 329.63, 392.00, 523.25];
+        scale.forEach((freq, idx) => {
+          setTimeout(() => {
+            try {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+              gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.25);
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+              osc.start();
+              osc.stop(this.ctx.currentTime + 0.25);
+            } catch (e) {}
+          }, idx * 80);
+        });
+      },
+
+      playBoot() {
+        if (this.muted) return;
+        this.init();
+        try {
+          // Retro sweep sound
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.8);
+          
+          gain.gain.setValueAtTime(0.002, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.03, this.ctx.currentTime + 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.8);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.8);
+        } catch (e) {}
+      },
+
+      startCRTTransformerHum() {
+        if (this.muted || this.humMuted) {
+          this.stopCRTTransformerHum();
+          return;
+        }
+        this.init();
+        try {
+          this.stopCRTTransformerHum();
+          
+          const osc = this.ctx.createOscillator();
+          this.gainNode = this.ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(60, this.ctx.currentTime); // 60Hz transformer hum
+          
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(110, this.ctx.currentTime);
+
+          this.gainNode.gain.setValueAtTime(0.004, this.ctx.currentTime); // faint background hum
+          
+          osc.connect(filter);
+          filter.connect(this.gainNode);
+          this.gainNode.connect(this.ctx.destination);
+          
+          osc.start();
+          this.humNode = osc;
+        } catch (e) {}
+      },
+
+      stopCRTTransformerHum() {
+        if (this.humNode) {
+          try {
+            this.humNode.stop();
+          } catch(e) {}
+          this.humNode = null;
+        }
+      }
+    };
+
+
+    // --- SWITCH HARDWARE CONTROL INTERFACE ---
+
+    function setTheme(colorTheme) {
+      document.body.classList.remove('theme-green', 'theme-cyan');
+      
+      const amberBtn = document.getElementById('theme-btn-amber');
+      const greenBtn = document.getElementById('theme-btn-green');
+      const cyanBtn = document.getElementById('theme-btn-cyan');
+      
+      const buttons = [amberBtn, greenBtn, cyanBtn];
+      buttons.forEach(btn => {
+        if (btn) btn.className = 'px-2 py-0.5 text-[10px] font-bold text-slate-500 cursor-pointer';
+      });
+      
+      if (colorTheme === 'green') {
+        document.body.classList.add('theme-green');
+        if (greenBtn) greenBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-[#00ff66] bg-[#003010]/60 cursor-pointer';
+      } else if (colorTheme === 'cyan') {
+        document.body.classList.add('theme-cyan');
+        if (cyanBtn) cyanBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-[#00e5ff] bg-[#002f35]/60 cursor-pointer';
+      } else {
+        if (amberBtn) amberBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-amber-500 bg-[#352500]/60 cursor-pointer';
+      }
+      
+      AudioEngine.playClick();
+      updateHUD();
+    }
+
+    function applyLevelTheme(level) {
+      document.body.classList.remove('theme-green', 'theme-cyan');
+      
+      const amberBtn = document.getElementById('theme-btn-amber');
+      const greenBtn = document.getElementById('theme-btn-green');
+      const cyanBtn = document.getElementById('theme-btn-cyan');
+      
+      const buttons = [amberBtn, greenBtn, cyanBtn];
+      buttons.forEach(btn => {
+        if (btn) btn.className = 'px-2 py-0.5 text-[10px] font-bold text-slate-500 cursor-pointer';
+      });
+      
+      if (level === 1) {
+        document.body.classList.add('theme-green');
+        if (greenBtn) greenBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-[#00ff66] bg-[#003010]/60 cursor-pointer';
+      } else if (level === 2) {
+        if (amberBtn) amberBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-amber-500 bg-[#352500]/60 cursor-pointer';
+      } else if (level === 3) {
+        document.body.classList.add('theme-cyan');
+        if (cyanBtn) cyanBtn.className = 'px-2 py-0.5 text-[10px] font-bold text-[#00e5ff] bg-[#002f35]/60 cursor-pointer';
+      }
+    }
+
+    function toggleScanlines() {
+      const screen = document.getElementById('monitor-screen-contents');
+      const btn = document.getElementById('scanline-switch-btn');
+      
+      if (screen.classList.contains('scanlines')) {
+        screen.classList.remove('scanlines');
+        btn.innerText = 'INACTIVE';
+        btn.className = 'border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-slate-600 cursor-pointer';
+      } else {
+        screen.classList.add('scanlines');
+        btn.innerText = 'ACTIVE';
+        btn.className = 'border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-amber-500 cursor-pointer';
+      }
+      AudioEngine.playClick();
+    }
+
+    function toggleHum() {
+      const btn = document.getElementById('hum-switch-btn');
+      
+      if (AudioEngine.humMuted) {
+        AudioEngine.humMuted = false;
+        AudioEngine.startCRTTransformerHum();
+        btn.innerText = 'HUMMING';
+        btn.className = 'border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-amber-500 cursor-pointer';
+      } else {
+        AudioEngine.humMuted = true;
+        AudioEngine.stopCRTTransformerHum();
+        btn.innerText = 'MUTED';
+        btn.className = 'border border-slate-700 bg-black/60 rounded px-2 py-0.5 text-[10px] font-bold text-slate-600 cursor-pointer';
+      }
+      AudioEngine.playClick();
+    }
+
+    let isMonitorPowered = true;
+    function toggleMonitorPower() {
+      const screen = document.getElementById('monitor-screen-contents');
+      const led = document.getElementById('power-led');
+      const btn = document.getElementById('power-dial-btn');
+      
+      if (isMonitorPowered) {
+        // Shutting down CRT
+        screen.classList.remove('screen-powering-on');
+        screen.classList.add('screen-shutting-off');
+        led.className = 'w-2.5 h-2.5 rounded-full bg-slate-900 shadow-none';
+        btn.className = 'w-7 h-7 rounded-full border border-slate-800 bg-[#151515] flex items-center justify-center cursor-pointer text-[10px] text-slate-700 font-bold active:scale-95 transition';
+        isMonitorPowered = false;
+        AudioEngine.stopCRTTransformerHum();
+        AudioEngine.playSubmit();
+      } else {
+        // Powering on CRT
+        screen.classList.remove('screen-shutting-off');
+        screen.classList.add('screen-powering-on');
+        led.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.7)]';
+        btn.className = 'w-7 h-7 rounded-full border border-rose-500/30 bg-[#2d1212]/50 hover:bg-[#3d1212]/60 hover:border-rose-500/60 active:scale-95 transition flex items-center justify-center cursor-pointer text-[10px] text-rose-500 font-bold';
+        isMonitorPowered = true;
+        AudioEngine.playBoot();
+        setTimeout(() => {
+          AudioEngine.startCRTTransformerHum();
+        }, 600);
+      }
+    }
+
+
+    // --- GAME METADATA SETUP ---
+    const LEVEL_METADATA = {
+      1: {
+        title: "LEVEL 1: INITIAL COMPROMISE",
+        progress: 33,
+        objectives: [
+          { text: "Query current environment path: pwd", trigger: "pwd" },
+          { text: "List folder contents: ls", trigger: "ls" },
+          { text: "Decrypt briefing.txt: cat briefing.txt", trigger: "cat briefing.txt" }
+        ],
+        commands: [
+          { cmd: "pwd", desc: "Print current path" },
+          { cmd: "ls", desc: "List visible files" },
+          { cmd: "cat briefing.txt", desc: "Read briefing text" },
+          { cmd: "clear", desc: "Clear terminal TTY" }
+        ]
+      },
+      2: {
+        title: "LEVEL 2: OBFUSCATED CREDENTIALS",
+        progress: 66,
+        objectives: [
+          { text: "Reveal hidden partition tables: ls -a", trigger: "ls -a" },
+          { text: "Extract hidden token key: cat .hidden_flag", trigger: "cat .hidden_flag" }
+        ],
+        commands: [
+          { cmd: "ls -a", desc: "List hidden files" },
+          { cmd: "cat .hidden_flag", desc: "Read hidden flag" },
+          { cmd: "pwd", desc: "Print path" },
+          { cmd: "clear", desc: "Clear terminal TTY" }
+        ]
+      },
+      3: {
+        title: "LEVEL 3: NETWORK TRAFFIC TRACE",
+        progress: 100,
+        objectives: [
+          { text: "Inspect exfiltrated logs: cat access.log", trigger: "cat access.log" },
+          { text: "Extract ADMIN_TOKEN string: grep 'FLAG' access.log", trigger: "grep" }
+        ],
+        commands: [
+          { cmd: "cat access.log", desc: "View access log file" },
+          { cmd: "grep FLAG access.log", desc: "Search log for FLAG" },
+          { cmd: "ls -a", desc: "List files" },
+          { cmd: "clear", desc: "Clear terminal TTY" }
+        ]
+      }
+    };
+
+    // Client variables
+    let clientState = {
+      level: 1,
+      commandHistory: [],
+      historyIndex: -1,
+      isInputBlocked: false,
+      cwd: "/home/user",
+      files: []
+    };
+
+    let activeTypingInterrupt = null;
+
+    // --- TERMINAL WRITER ---
+    function addLogLine(htmlContent, type = 'output', animate = false, animateSpeed = 7, callback = null) {
+      const historyContainer = document.getElementById('terminal-history');
+      const line = document.createElement('div');
+      
+      if (type === 'input') {
+        const promptPath = clientState.cwd === '/home/user' ? '~' : clientState.cwd;
+        line.className = 'flex items-start space-x-2 text-white font-mono text-[15px] tracking-wide leading-relaxed';
+        line.innerHTML = `<span class="font-bold shrink-0 select-none">user@letsknowlinux:${promptPath}$</span><span class="break-all select-text"></span>`;
+        line.querySelector('.break-all').innerText = htmlContent;
+      } else if (type === 'error') {
+        line.className = 'font-mono text-[15px] tracking-wide leading-relaxed break-words select-text opacity-95 text-rose-500';
+        line.innerHTML = htmlContent;
+      } else if (type === 'system') {
+        line.className = 'font-mono text-[15px] tracking-wide leading-relaxed break-words select-text';
+        line.innerHTML = htmlContent;
+      } else {
+        line.className = 'font-mono text-[15px] tracking-wide leading-relaxed break-words select-text';
+        line.innerHTML = htmlContent;
+      }
+      
+      historyContainer.appendChild(line);
+      
+      const terminalScreen = document.getElementById('terminal-screen');
+      terminalScreen.scrollTop = terminalScreen.scrollHeight;
+      
+      if (animate) {
+        clientState.isInputBlocked = true;
+        const textElement = type === 'input' ? line.querySelector('.break-all') : line;
+        const originalContent = textElement.innerHTML;
+        textElement.innerHTML = '';
+        
+        let i = 0;
+        let timeoutId = null;
+
+        activeTypingInterrupt = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          textElement.innerHTML = originalContent;
+          terminalScreen.scrollTop = terminalScreen.scrollHeight;
+          clientState.isInputBlocked = false;
+          activeTypingInterrupt = null;
+          if (callback) callback();
+          focusConsoleInput();
+        };
+
+        function typeChar() {
+          if (i < originalContent.length) {
+            if (originalContent[i] === '<') {
+              const closeIdx = originalContent.indexOf('>', i);
+              if (closeIdx !== -1) {
+                textElement.innerHTML += originalContent.substring(i, closeIdx + 1);
+                i = closeIdx + 1;
+              } else {
+                textElement.innerHTML += originalContent[i];
+                i++;
+              }
+            } else {
+              textElement.innerHTML += originalContent[i];
+              i++;
+            }
+            
+            if (i % 4 === 0 && !AudioEngine.muted) {
+              AudioEngine.playClick();
+            }
+            
+            terminalScreen.scrollTop = terminalScreen.scrollHeight;
+            timeoutId = setTimeout(typeChar, animateSpeed);
+          } else {
+            textElement.innerHTML = originalContent;
+            terminalScreen.scrollTop = terminalScreen.scrollHeight;
+            clientState.isInputBlocked = false;
+            activeTypingInterrupt = null;
+            if (callback) callback();
+            focusConsoleInput();
+          }
+        }
+        typeChar();
+      } else {
+        if (callback) callback();
+        focusConsoleInput();
+      }
+    }
+
+    function clearTerminalScreen() {
+      document.getElementById('terminal-history').innerHTML = '';
+      if (!AudioEngine.muted) AudioEngine.playSubmit();
+    }
+
+
+    // --- API HANDLERS ---
+
+    async function fetchState() {
+      try {
+        const response = await fetch('/api/state');
+        if (response.ok) {
+          const data = await response.json();
+          clientState.level = data.level;
+          clientState.cwd = data.cwd || "/home/user";
+          clientState.files = data.files || [];
+          
+          // Update visual prompt prefix
+          const promptPath = clientState.cwd === '/home/user' ? '~' : clientState.cwd;
+          const promptPrefixEl = document.getElementById('terminal-prompt-prefix');
+          if (promptPrefixEl) {
+            promptPrefixEl.innerText = `user@letsknowlinux:${promptPath}$`;
+          }
+          
+          updateHUD();
+        }
+      } catch (err) {
+        console.error("Failed to load server state:", err);
+      }
+    }
+
+    async function postCommandToAPI(commandString) {
+      clientState.isInputBlocked = true;
+      try {
+        const response = await fetch('/api/terminal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command: commandString })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          if (data.error) {
+            triggerScreenShake();
+            if (!AudioEngine.muted) AudioEngine.playError();
+            addLogLine(data.output, 'error');
+          } else {
+            addLogLine(data.output, 'output');
+          }
+          checkObjectiveProgress(commandString);
+          await fetchState();
+        } else {
+          addLogLine(`[-] SERVER BUS TRANSCEIVE ERROR.`, 'error');
+        }
+      } catch (err) {
+        addLogLine(`[-] HARDWARE LINK LOSS DETECTION.`, 'error');
+      } finally {
+        clientState.isInputBlocked = false;
+        focusConsoleInput();
+      }
+    }
+
+    async function submitLevelFlag() {
+      const input = document.getElementById('flag-input');
+      const feedback = document.getElementById('flag-feedback');
+      const flagVal = input.value.trim();
+
+      if (!flagVal) {
+        showFeedback("INPUT FIELD UNASSIGNED", "error");
+        return;
+      }
+
+      feedback.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/submit-flag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flag: flagVal })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          input.value = "";
+          showFeedback(data.message, "success");
+          if (!AudioEngine.muted) AudioEngine.playSuccess();
+          
+          triggerStateAdvance(data.level, data.gameCompleted);
+        } else {
+          showFeedback(data.message || "CRYPTO HASH VERIFICATION INVALID", "error");
+          if (!AudioEngine.muted) AudioEngine.playError();
+        }
+      } catch (err) {
+        showFeedback("TRANSMISSION BRIDGE TO MAIN LINK LOST", "error");
+      }
+    }
+
+    function showFeedback(msg, status) {
+      const feedback = document.getElementById('flag-feedback');
+      feedback.innerText = msg.toUpperCase();
+      feedback.classList.remove('hidden');
+    }
+
+    function triggerStateAdvance(newLevel, isBeaten) {
+      clearTerminalScreen();
+      
+      const transitionHtml = `
+\r================================================================================
+\r>>> KEY TOKEN EXFILTRATED SUCCESSFULLY.
+\r>>> REBOOTING CRT RESOLUTION PERMISSIONS...
+\r>>> ENCRYPTED MEMORY BLOCKS RE-HASHING...
+\r================================================================================
+\rESTABLISHING CONNECTION SECURE... TTY LEVEL TRANSITION TO: ${newLevel}
+\r
+      `;
+      
+      addLogLine(transitionHtml, 'system', false, 0, () => {
+        setTimeout(async () => {
+          clientState.level = newLevel;
+          updateHUD();
+          clearTerminalScreen();
+
+          if (isBeaten) {
+            showEndGameCredits();
+          } else {
+            addLogLine(`
+>>> SYSTEM READY FOR TTY WORKSPACE LEVEL ${newLevel}.
+>>> RUN 'ls' AND READ DECRYPTED MODULE BRIEFING TO OBTAIN ACCESS METADATA.
+            `, 'system', true);
+          }
+        }, 2200);
+      });
+    }
+
+    function showEndGameCredits() {
+      const victoryArt = `
+\r================================================================================
+\r          L E T S   K N O W   L I N U X   M A I N F R A M E   O N L I N E
+\r================================================================================
+\r
+\rALL SECURE DATA STACK CHANNELS RESTORED AND OPERATIONAL.
+\r
+\rVALIDATED RECORDS DISPATCHED IN SESSION:
+\r  • BLOCK 01 TOKEN: [VALID] LKL{t3rm1n4l_0r13nt4t10n_pwn3d}
+\r  • BLOCK 02 TOKEN: [VALID] LKL{ls_h1dd3n_4v41l4bl3}
+\r  • BLOCK 03 TOKEN: [VALID] LKL{grep_3ff1c13nt_f1lt3r1ng}
+\r
+\rINTEGRITY CONTROLLER MARKED STATE: CERTIFIED MAIN ADMIN.
+\rTO REBOOT WORKSPACE SYSTEM RUN 'reset' OR PRESS THE PHYSICAL POWER SWITCH.
+\r================================================================================
+      `;
+      addLogLine(victoryArt, 'system', true, 10);
+    }
+
+    async function resetGame() {
+      if (!confirm("Confirm complete clean reboot of memory registers?")) return;
+      try {
+        const response = await fetch('/api/reset', { method: 'POST' });
+        if (response.ok) {
+          clientState.level = 1;
+          clientState.commandHistory = [];
+          clientState.historyIndex = -1;
+          document.getElementById('footer-history-size').innerText = "History: 0 cmds";
+          document.getElementById('flag-input').value = "";
+          document.getElementById('flag-feedback').classList.add('hidden');
+          
+          clearTerminalScreen();
+          AudioEngine.playBoot();
+          
+          updateHUD();
+          addLogLine(`
+>>> TTY CHANNELS WIPE CONFIRMED. REGISTER REBOOT INITIATED.
+>>> SYSTEM READY. RUN 'ls' AND READ 'briefing.txt'.
+          `, 'system', true);
+        }
+      } catch (err) {
+        alert("Failed to reset session on server.");
+      }
+    }
+
+
+    // --- HUD RENDERERS ---
+
+    let lastRenderedLevel = null;
+
+    function updateHUD() {
+      const activeMeta = LEVEL_METADATA[clientState.level];
+      if (!activeMeta) return;
+
+      if (lastRenderedLevel !== clientState.level) {
+        lastRenderedLevel = clientState.level;
+        applyLevelTheme(clientState.level);
+      }
+
+      // Update titles
+      document.getElementById('hud-level-title').innerText = activeMeta.title;
+      document.getElementById('hud-progress-text').innerText = `${activeMeta.progress}%`;
+      document.getElementById('hud-progress-bar').style.width = `${activeMeta.progress}%`;
+
+      // Render objectives
+      const objContainer = document.getElementById('hud-objectives');
+      objContainer.innerHTML = '';
+      activeMeta.objectives.forEach(obj => {
+        const item = document.createElement('div');
+        item.className = 'flex items-start space-x-2 text-xs text-slate-400';
+        item.innerHTML = `
+          <span class="w-3.5 h-3.5 rounded border border-slate-700 bg-black flex items-center justify-center font-bold text-[9px] text-transparent select-none p-border">✔</span>
+          <span class="cursor-pointer hover:underline" onclick="autofillCommand('${obj.trigger}')">${escapeHTML(obj.text)}</span>
+        `;
+        objContainer.appendChild(item);
+      });
+
+      // Update directory files
+      const treeContainer = document.getElementById('file-tree');
+      treeContainer.innerHTML = '';
+
+      const workspaceFiles = clientState.files || [];
+      const fileIcons = {
+        'briefing.txt': '📄',
+        '.hidden_flag': '🔒',
+        'access.log': '📊'
+      };
+
+      workspaceFiles.forEach(file => {
+        const icon = file.type === 'dir' ? '📁' : (fileIcons[file.name] || '📄');
+        const cmd = file.type === 'dir' ? `cd ${file.name}; ls` : `cat ${file.name}`;
+        
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-1.5 rounded bg-black/40 hover:bg-white/5 border border-transparent hover:border-slate-700 cursor-pointer transition';
+        row.onclick = () => autofillCommand(cmd);
+        row.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span>${icon}</span>
+            <span class="font-mono text-xs">${file.name}</span>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded border border-slate-700 font-semibold select-none uppercase">
+            ${file.hidden ? 'hidden' : file.type}
+          </span>
+        `;
+        treeContainer.appendChild(row);
+      });
+
+      // Update command cheatsheets
+      const cmdGrid = document.getElementById('hud-commands');
+      cmdGrid.innerHTML = '';
+      activeMeta.commands.forEach(c => {
+        const item = document.createElement('button');
+        item.className = 'w-full bg-[#15120e] hover:bg-white/5 border rounded py-1.5 px-2 text-left font-mono text-[10px] hover:text-white transition duration-150 cursor-pointer flex justify-between items-center group p-border';
+        item.onclick = () => autofillCommand(c.cmd);
+        item.innerHTML = `
+          <span class="font-bold group-hover:underline">${c.cmd}</span>
+          <span class="text-[8px] opacity-40">TAB</span>
+        `;
+        cmdGrid.appendChild(item);
+      });
+    }
+
+    function checkObjectiveProgress(rawCmd) {
+      const activeMeta = LEVEL_METADATA[clientState.level];
+      const tokens = rawCmd.trim().split(/\s+/);
+      const cmd = tokens[0].toLowerCase();
+
+      activeMeta.objectives.forEach((obj, idx) => {
+        const listItems = document.getElementById('hud-objectives').children;
+        if (!listItems[idx]) return;
+
+        let complete = false;
+        if (obj.trigger === 'pwd' && cmd === 'pwd') complete = true;
+        if (obj.trigger === 'ls' && cmd === 'ls') complete = true;
+        if (obj.trigger === 'ls -a' && rawCmd.includes('ls') && rawCmd.includes('-a')) complete = true;
+        if (obj.trigger === 'cat briefing.txt' && rawCmd.includes('cat') && rawCmd.includes('briefing.txt')) complete = true;
+        if (obj.trigger === 'cat .hidden_flag' && rawCmd.includes('cat') && rawCmd.includes('.hidden_flag')) complete = true;
+        if (obj.trigger === 'cat access.log' && rawCmd.includes('cat') && rawCmd.includes('access.log')) complete = true;
+        if (obj.trigger === 'grep' && cmd === 'grep') complete = true;
+
+        if (complete) {
+          const checkbox = listItems[idx].querySelector('span');
+          checkbox.classList.remove('text-transparent');
+          checkbox.className = 'w-3.5 h-3.5 rounded bg-amber-950/40 border flex items-center justify-center font-bold text-[9px] text-amber-500 select-none p-border';
+        }
+      });
+    }
+
+
+    // --- KEYBOARD CONTROLLERS ---
+
+    function focusConsoleInput() {
+      if (!isMonitorPowered) return;
+      
+      // Do not focus if user is highlighting text for copying
+      if (window.getSelection() && window.getSelection().toString()) {
+        return;
+      }
+      
+      if (activeTypingInterrupt) {
+        activeTypingInterrupt();
+        return;
+      }
+      if (clientState.isInputBlocked) return;
+      const input = document.getElementById('terminal-input');
+      input.focus();
+    }
+
+    let typingTimer = null;
+    function onInputChanged() {
+      if (!isMonitorPowered) return;
+      const statusEl = document.getElementById('typing-status');
+      statusEl.innerText = "INPUT: TYPING...";
+      statusEl.classList.remove('opacity-40');
+
+      if (typingTimer) clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        statusEl.innerText = "INPUT: IDLE";
+        statusEl.classList.add('opacity-40');
+      }, 700);
+
+      updateSuggestionText();
+    }
+
+    function getLevelWords() {
+      const activeMeta = LEVEL_METADATA[clientState.level];
+      const list = activeMeta.commands.map(c => c.cmd);
+      
+      list.push('clear', 'help', 'pwd', 'ls', 'cd', 'mkdir', 'cp', 'mv', 'rm', 'touch', 'sudo', 'chmod', 'chown', 'whoami', 'uname', 'df', 'cat', 'grep', 'nano', 'vim', 'head', 'tail', 'less');
+      
+      if (clientState.files) {
+        clientState.files.forEach(f => list.push(f.name));
+      }
+
+      return [...new Set(list)];
+    }
+
+    function updateSuggestionText() {
+      const input = document.getElementById('terminal-input');
+      const suggestionEl = document.getElementById('autocomplete-suggestion');
+      const val = input.value.trim();
+
+      if (!val) {
+        suggestionEl.innerText = "";
+        return;
+      }
+
+      const tokens = val.split(' ');
+      const lastToken = tokens[tokens.length - 1];
+
+      if (!lastToken) {
+        suggestionEl.innerText = "";
+        return;
+      }
+
+      const words = getLevelWords();
+      const match = words.find(w => w.startsWith(lastToken) && w !== lastToken);
+
+      if (match) {
+        const extra = match.substring(lastToken.length);
+        suggestionEl.innerText = input.value + extra;
+      } else {
+        suggestionEl.innerText = "";
+      }
+    }
+
+    function handleTerminalKeys(e) {
+      if (!isMonitorPowered) return;
+      if (activeTypingInterrupt) {
+        e.preventDefault();
+        activeTypingInterrupt();
+        return;
+      }
+
+      const input = document.getElementById('terminal-input');
+
+      if (!AudioEngine.muted && e.key.length === 1) {
+        AudioEngine.playClick();
+      }
+
+      if (clientState.isInputBlocked) {
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const rawText = input.value;
+        input.value = "";
+        document.getElementById('autocomplete-suggestion').innerText = "";
+
+        if (rawText.trim().toLowerCase() === 'reset') {
+          resetGame();
+          return;
+        }
+
+        executeTerminal(rawText);
+      }
+      else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (clientState.commandHistory.length > 0 && clientState.historyIndex > 0) {
+          clientState.historyIndex--;
+          input.value = clientState.commandHistory[clientState.historyIndex];
+          updateSuggestionText();
+        }
+      }
+      else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (clientState.historyIndex < clientState.commandHistory.length - 1) {
+          clientState.historyIndex++;
+          input.value = clientState.commandHistory[clientState.historyIndex];
+        } else {
+          clientState.historyIndex = clientState.commandHistory.length;
+          input.value = "";
+        }
+        updateSuggestionText();
+      }
+      else if (e.key === 'Tab') {
+        e.preventDefault();
+        const suggestionEl = document.getElementById('autocomplete-suggestion');
+        if (suggestionEl.innerText) {
+          input.value = suggestionEl.innerText;
+          suggestionEl.innerText = "";
+          if (!AudioEngine.muted) AudioEngine.playClick();
+        }
+      }
+    }
+
+    function executeTerminal(rawInput) {
+      const sanitized = rawInput.trim();
+      if (!sanitized) return;
+
+      addLogLine(sanitized, 'input');
+
+      clientState.commandHistory.push(rawInput);
+      clientState.historyIndex = clientState.commandHistory.length;
+      document.getElementById('footer-history-size').innerText = `History: ${clientState.commandHistory.length} cmds`;
+
+      if (!AudioEngine.muted) AudioEngine.playSubmit();
+
+      if (sanitized.toLowerCase() === 'clear') {
+        clearTerminalScreen();
+        return;
+      }
+
+      if (sanitized.toLowerCase() === 'help') {
+        renderLocalHelp();
+        return;
+      }
+
+      postCommandToAPI(sanitized);
+    }
+
+    function renderLocalHelp() {
+      const activeMeta = LEVEL_METADATA[clientState.level];
+      let helpMsg = `<div class="border p-3 rounded-lg mt-1 select-text p-bg p-border">
+        <span class="font-retro text-2xl tracking-wider font-bold block mb-1">NEXUS DIRECTORY LEVEL HELP - ${clientState.level}</span>
+        <p class="text-xs text-slate-400 mb-2">Locate flags and paste them into the "Flag Submission" dashboard card above.</p>
+        <ul class="list-disc list-inside text-xs space-y-1">`;
+      
+      activeMeta.objectives.forEach(obj => {
+        helpMsg += `<li>${escapeHTML(obj.text)}</li>`;
+      });
+      
+      helpMsg += `</ul>
+        <div class="mt-3 border-t pt-2 p-border">
+          <span class="text-[10px] font-bold uppercase tracking-wider block mb-1.5">Command Index:</span>
+          <div class="grid grid-cols-2 gap-2 text-[10px]">`;
+      
+      activeMeta.commands.forEach(c => {
+        helpMsg += `<div><span class="font-bold cursor-pointer hover:underline" onclick="autofillCommand('${c.cmd}')">${c.cmd}</span> - <span class="opacity-60">${c.desc}</span></div>`;
+      });
+
+      helpMsg += `</div></div></div>`;
+      addLogLine(helpMsg, 'output');
+    }
+
+    function autofillCommand(cmdString) {
+      if (!isMonitorPowered) return;
+      if (clientState.isInputBlocked) return;
+      const input = document.getElementById('terminal-input');
+      input.value = cmdString;
+      input.focus();
+      updateSuggestionText();
+      if (!AudioEngine.muted) AudioEngine.playClick();
+    }
+
+    function triggerScreenShake() {
+      const screen = document.getElementById('monitor-screen-contents');
+      screen.classList.add('shake-anim');
+      setTimeout(() => { screen.classList.remove('shake-anim'); }, 300);
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    // --- CLOCK AND BOOTING ---
+    function updateClock() {
+      const liveTime = document.getElementById('live-time');
+      const now = new Date();
+      const format = String(now.getHours()).padStart(2, '0') + ":" + 
+                     String(now.getMinutes()).padStart(2, '0') + ":" + 
+                     String(now.getSeconds()).padStart(2, '0');
+      liveTime.innerText = `TIME: ${format}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (window.location.protocol === 'file:') {
+        document.getElementById('protocol-warning').classList.remove('hidden');
+      }
+
+      // Start clock interval
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      AudioEngine.playBoot();
+      setTimeout(() => {
+        AudioEngine.startCRTTransformerHum();
+      }, 800);
+
+      await fetchState();
+      
+      addLogLine(`
+*** INITIALIZING RETRO TRANSCEIVER TTY REGISTER KEYS...
+*** SECURE EXPR_SESSION COOKIES VERIFIED AND SYNCHRONIZED. 
+*** TYPE 'ls' AND READ MODULE 'briefing.txt' TO RETRIEVE CODE DATA.
+      `, 'system', true);
+    });
+
+  </script>
+</body>
+</html>
