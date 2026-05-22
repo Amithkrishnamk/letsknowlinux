@@ -606,7 +606,6 @@
     const LEVEL_METADATA = {
       1: {
         title: "LEVEL 1: INITIAL COMPROMISE",
-        progress: 33,
         objectives: [
           { text: "Query current environment path: pwd", trigger: "pwd" },
           { text: "List folder contents: ls", trigger: "ls" },
@@ -621,7 +620,6 @@
       },
       2: {
         title: "LEVEL 2: OBFUSCATED CREDENTIALS",
-        progress: 66,
         objectives: [
           { text: "Reveal hidden partition tables: ls -a", trigger: "ls -a" },
           { text: "Extract hidden token key: cat .hidden_flag", trigger: "cat .hidden_flag" }
@@ -635,7 +633,6 @@
       },
       3: {
         title: "LEVEL 3: NETWORK TRAFFIC TRACE",
-        progress: 100,
         objectives: [
           { text: "Inspect exfiltrated logs: cat access.log", trigger: "cat access.log" },
           { text: "Extract ADMIN_TOKEN string: grep 'FLAG' access.log", trigger: "grep" }
@@ -645,6 +642,328 @@
           { cmd: "grep FLAG access.log", desc: "Search log for FLAG" },
           { cmd: "ls -a", desc: "List files" },
           { cmd: "clear", desc: "Clear terminal TTY" }
+        ]
+      },
+      4: {
+        title: "LEVEL 4: DIRECTORY EXPLORATION",
+        objectives: [
+          { text: "Navigate to documents folder: cd documents", trigger: "cd documents" },
+          { text: "List files in directory: ls", trigger: "ls" },
+          { text: "Read flag: cat doc.txt", trigger: "cat doc.txt" }
+        ],
+        commands: [
+          { cmd: "cd documents", desc: "Enter documents folder" },
+          { cmd: "ls", desc: "List files" },
+          { cmd: "cat doc.txt", desc: "Read doc.txt" },
+          { cmd: "cd ..", desc: "Go up one directory" }
+        ]
+      },
+      5: {
+        title: "LEVEL 5: SYSTEM LOG ARCHIVE",
+        objectives: [
+          { text: "Change directory to /var/log: cd /var/log", trigger: "cd /var/log" },
+          { text: "Read the system log: cat sys.log", trigger: "cat sys.log" }
+        ],
+        commands: [
+          { cmd: "cd /var/log", desc: "Change to log folder" },
+          { cmd: "cat sys.log", desc: "View system log" },
+          { cmd: "cd ~", desc: "Change to home folder" },
+          { cmd: "pwd", desc: "Print path" }
+        ]
+      },
+      6: {
+        title: "LEVEL 6: WORKSPACE PROVISIONING",
+        objectives: [
+          { text: "Create workspace directory: mkdir workspace", trigger: "mkdir workspace" },
+          { text: "Confirm directory exists: ls", trigger: "ls" }
+        ],
+        commands: [
+          { cmd: "mkdir workspace", desc: "Create a directory" },
+          { cmd: "ls", desc: "List files" },
+          { cmd: "pwd", desc: "Print path" }
+        ]
+      },
+      7: {
+        title: "LEVEL 7: SEGMENT INITIALIZATION",
+        objectives: [
+          { text: "Navigate to workspace: cd workspace", trigger: "cd workspace" },
+          { text: "Create note.txt: touch note.txt", trigger: "touch note.txt" }
+        ],
+        commands: [
+          { cmd: "cd workspace", desc: "Enter workspace folder" },
+          { cmd: "touch note.txt", desc: "Create empty file" },
+          { cmd: "ls", desc: "List files" },
+          { cmd: "cd ..", desc: "Go up one directory" }
+        ]
+      },
+      8: {
+        title: "LEVEL 8: SECURE COPIER DAEMON",
+        objectives: [
+          { text: "View file contents: cat source.txt", trigger: "cat source.txt" },
+          { text: "Copy source.txt to backup.txt: cp source.txt backup.txt", trigger: "cp source.txt backup.txt" }
+        ],
+        commands: [
+          { cmd: "cat source.txt", desc: "Read source file" },
+          { cmd: "cp source.txt backup.txt", desc: "Copy file" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      9: {
+        title: "LEVEL 9: STABLE STATE TRANSITION",
+        objectives: [
+          { text: "Rename old.txt to stable.txt: mv old.txt stable.txt", trigger: "mv old.txt stable.txt" },
+          { text: "Verify file is renamed: ls", trigger: "ls" }
+        ],
+        commands: [
+          { cmd: "mv old.txt stable.txt", desc: "Move/rename file" },
+          { cmd: "ls", desc: "List files" },
+          { cmd: "cat stable.txt", desc: "View file contents" }
+        ]
+      },
+      10: {
+        title: "LEVEL 10: DEBRIS DE-PROVISIONING",
+        objectives: [
+          { text: "Remove the trash file: rm trash.txt", trigger: "rm trash.txt" },
+          { text: "Verify removal: ls", trigger: "ls" }
+        ],
+        commands: [
+          { cmd: "rm trash.txt", desc: "Delete file" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      11: {
+        title: "LEVEL 11: SYSTEM HEAD READOUT",
+        objectives: [
+          { text: "View first lines of config: head system.conf", trigger: "head" },
+          { text: "View first 3 lines of config: head -n 3 system.conf", trigger: "head -n 3" }
+        ],
+        commands: [
+          { cmd: "head system.conf", desc: "Read top of file" },
+          { cmd: "head -n 3 system.conf", desc: "Read top N lines" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      12: {
+        title: "LEVEL 12: LOG JOURNAL ANALYSIS",
+        objectives: [
+          { text: "Read bottom lines of log: tail app.log", trigger: "tail" },
+          { text: "Read bottom 5 lines of log: tail -n 5 app.log", trigger: "tail -n 5" }
+        ],
+        commands: [
+          { cmd: "tail app.log", desc: "Read bottom of file" },
+          { cmd: "tail -n 5 app.log", desc: "Read bottom N lines" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      13: {
+        title: "LEVEL 13: INTERACTIVE PAGE VIEWER",
+        objectives: [
+          { text: "Open database.csv with less: less database.csv", trigger: "less database.csv" }
+        ],
+        commands: [
+          { cmd: "less database.csv", desc: "Page file interactively" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      14: {
+        title: "LEVEL 14: RETRO TEXT CONFIGURATION",
+        objectives: [
+          { text: "Open config.json using nano editor: nano config.json", trigger: "nano config.json" }
+        ],
+        commands: [
+          { cmd: "nano config.json", desc: "Edit file in nano" },
+          { cmd: "cat config.json", desc: "Read configuration" }
+        ]
+      },
+      15: {
+        title: "LEVEL 15: ADVANCED TERMINAL SHELL",
+        objectives: [
+          { text: "Open script.sh using vim editor: vim script.sh", trigger: "vim script.sh" }
+        ],
+        commands: [
+          { cmd: "vim script.sh", desc: "Edit file in vim" },
+          { cmd: "cat script.sh", desc: "Read shell script" }
+        ]
+      },
+      16: {
+        title: "LEVEL 16: ACTIVE LOGICAL USER",
+        objectives: [
+          { text: "Check your active user identity: whoami", trigger: "whoami" }
+        ],
+        commands: [
+          { cmd: "whoami", desc: "Print current user" },
+          { cmd: "pwd", desc: "Print path" }
+        ]
+      },
+      17: {
+        title: "LEVEL 17: HOST AND KERNEL METRICS",
+        objectives: [
+          { text: "Check operating system info: uname -a", trigger: "uname" }
+        ],
+        commands: [
+          { cmd: "uname -a", desc: "Print system info" },
+          { cmd: "uname", desc: "Print system name" }
+        ]
+      },
+      18: {
+        title: "LEVEL 18: SECTOR CAPACITY SURVEY",
+        objectives: [
+          { text: "Display virtual disk space usage: df -h", trigger: "df" }
+        ],
+        commands: [
+          { cmd: "df -h", desc: "Show disk space" },
+          { cmd: "df", desc: "Show filesystem size" }
+        ]
+      },
+      19: {
+        title: "LEVEL 19: EXECUTABLE RESTORATION",
+        objectives: [
+          { text: "Make run.sh executable: chmod +x run.sh", trigger: "chmod +x run.sh" }
+        ],
+        commands: [
+          { cmd: "chmod +x run.sh", desc: "Make file executable" },
+          { cmd: "chmod 755 run.sh", desc: "Set permissions to 755" },
+          { cmd: "ls -l", desc: "List detailed files" }
+        ]
+      },
+      20: {
+        title: "LEVEL 20: OWNERSHIP ALIGNMENT",
+        objectives: [
+          { text: "Change owner of secret.txt to root: sudo chown root secret.txt", trigger: "chown" }
+        ],
+        commands: [
+          { cmd: "sudo chown root secret.txt", desc: "Change file owner" },
+          { cmd: "ls -l", desc: "List detailed files" }
+        ]
+      },
+      21: {
+        title: "LEVEL 21: SHADOW ACCESS PRIVILEGE",
+        objectives: [
+          { text: "Read restricted shadow credentials file: sudo cat /etc/shadow", trigger: "sudo cat /etc/shadow" }
+        ],
+        commands: [
+          { cmd: "sudo cat /etc/shadow", desc: "Read shadow records" },
+          { cmd: "cat /etc/shadow", desc: "Read shadow (fails)" }
+        ]
+      },
+      22: {
+        title: "LEVEL 22: OUTPUT REDIRECTION STANDARD",
+        objectives: [
+          { text: "Redirect echo text to system_status.txt: echo restore > system_status.txt", trigger: "system_status.txt" }
+        ],
+        commands: [
+          { cmd: "echo restore > system_status.txt", desc: "Redirect to file" },
+          { cmd: "cat system_status.txt", desc: "Read redirected file" }
+        ]
+      },
+      23: {
+        title: "LEVEL 23: CONCATENATION REDIRECTION",
+        objectives: [
+          { text: "Append patch2 to patches.log: echo patch2 >> patches.log", trigger: "patches.log" }
+        ],
+        commands: [
+          { cmd: "echo patch2 >> patches.log", desc: "Append to file" },
+          { cmd: "cat patches.log", desc: "Read appended file" }
+        ]
+      },
+      24: {
+        title: "LEVEL 24: KERNEL TTY PIPELINE",
+        objectives: [
+          { text: "Filter folder contents using grep: ls | grep log", trigger: "grep" }
+        ],
+        commands: [
+          { cmd: "ls | grep log", desc: "Pipe file list to grep" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      25: {
+        title: "LEVEL 25: WORD COUNT TELEMETRY",
+        objectives: [
+          { text: "Count total directory entries using wc: ls | wc -l", trigger: "wc" }
+        ],
+        commands: [
+          { cmd: "ls | wc -l", desc: "Count items via pipe" },
+          { cmd: "ls | wc", desc: "Count words/lines/chars" }
+        ]
+      },
+      26: {
+        title: "LEVEL 26: DESTRUCTIVE RECURSION",
+        objectives: [
+          { text: "Recursively delete old_project folder: rm -rf old_project", trigger: "rm" }
+        ],
+        commands: [
+          { cmd: "rm -rf old_project", desc: "Recursively force delete" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      27: {
+        title: "LEVEL 27: AUDIT TRAIL SEARCH",
+        objectives: [
+          { text: "Perform case-insensitive search for FLAG in auth.log: grep -i 'flag' auth.log", trigger: "grep" }
+        ],
+        commands: [
+          { cmd: "grep -i flag auth.log", desc: "Case-insensitive grep" },
+          { cmd: "cat auth.log", desc: "Read log directly" }
+        ]
+      },
+      28: {
+        title: "LEVEL 28: RECURSIVE ARCHIVING",
+        objectives: [
+          { text: "Recursively copy template directory to backup_template: cp -r template backup_template", trigger: "cp" }
+        ],
+        commands: [
+          { cmd: "cp -r template backup_template", desc: "Recursively copy directory" },
+          { cmd: "ls", desc: "List files" }
+        ]
+      },
+      29: {
+        title: "LEVEL 29: SYSTEM DISK SCOUTING",
+        objectives: [
+          { text: "Locate all configuration files using find: find . -name '*.conf'", trigger: "find" }
+        ],
+        commands: [
+          { cmd: "find . -name '*.conf'", desc: "Find files matching pattern" },
+          { cmd: "find .", desc: "List all files recursively" }
+        ]
+      },
+      30: {
+        title: "LEVEL 30: CONGLOMERATE PATTERNS",
+        objectives: [
+          { text: "View contents of all part files using wildcards: cat part*", trigger: "cat part" }
+        ],
+        commands: [
+          { cmd: "cat part*", desc: "View wildcard files" },
+          { cmd: "ls part*", desc: "List wildcard files" }
+        ]
+      },
+      31: {
+        title: "LEVEL 31: CYBER BASE64 DECODER",
+        objectives: [
+          { text: "Decode base64 encoded flag file: base64 -d encoded.txt", trigger: "base64" }
+        ],
+        commands: [
+          { cmd: "base64 -d encoded.txt", desc: "Decode base64 file" },
+          { cmd: "cat encoded.txt", desc: "Read encoded file" }
+        ]
+      },
+      32: {
+        title: "LEVEL 32: CONSOLE RUNTIME VARS",
+        objectives: [
+          { text: "Inspect terminal environment variables: env", trigger: "env" }
+        ],
+        commands: [
+          { cmd: "env", desc: "Print environment variables" },
+          { cmd: "printenv", desc: "Print environment variables" }
+        ]
+      },
+      33: {
+        title: "LEVEL 33: THE FINAL MAINFRAME RESTORE",
+        objectives: [
+          { text: "Execute the mainframe decryption script: ./decrypt", trigger: "./decrypt" }
+        ],
+        commands: [
+          { cmd: "./decrypt", desc: "Run decryption binary" },
+          { cmd: "ls -l", desc: "Inspect file details" }
         ]
       }
     };
@@ -656,7 +975,8 @@
       historyIndex: -1,
       isInputBlocked: false,
       cwd: "/home/user",
-      files: []
+      files: [],
+      completedObjectives: {} // level -> array of indices
     };
 
     let activeTypingInterrupt = null;
@@ -881,22 +1201,28 @@
     }
 
     function showEndGameCredits() {
-      const victoryArt = `
-\r================================================================================
-\r          L E T S   K N O W   L I N U X   M A I N F R A M E   O N L I N E
-\r================================================================================
-\r
-\rALL SECURE DATA STACK CHANNELS RESTORED AND OPERATIONAL.
-\r
-\rVALIDATED RECORDS DISPATCHED IN SESSION:
-\r  • BLOCK 01 TOKEN: [VALID] LKL{t3rm1n4l_0r13nt4t10n_pwn3d}
-\r  • BLOCK 02 TOKEN: [VALID] LKL{ls_h1dd3n_4v41l4bl3}
-\r  • BLOCK 03 TOKEN: [VALID] LKL{grep_3ff1c13nt_f1lt3r1ng}
-\r
-\rINTEGRITY CONTROLLER MARKED STATE: CERTIFIED MAIN ADMIN.
-\rTO REBOOT WORKSPACE SYSTEM RUN 'reset' OR PRESS THE PHYSICAL POWER SWITCH.
-\r================================================================================
-      `;
+      let victoryArt = `
+================================================================================
+          L E T S   K N O W   L I N U X   M A I N F R A M E   O N L I N E
+================================================================================
+
+ALL SECURE DATA STACK CHANNELS RESTORED AND OPERATIONAL.
+
+INTEGRITY CONTROLLER MARKED STATE: CERTIFIED MAIN ADMIN.
+SYSTEM DECRYPTION KEY DISPATCH STACK: SUCCESS.
+
+TOTAL ENCRYPTED SECTORS SECURED: 33 / 33
+SUBMITTED KEYS VERIFIED STACK:
+`;
+
+      clientState.completedFlags.forEach((flg, idx) => {
+        victoryArt += `  • SECTOR ${String(idx + 1).padStart(2, '0')} KEY: [VALID] ${flg}\n`;
+      });
+
+      victoryArt += `
+TO REBOOT WORKSPACE SYSTEM RUN 'reset' OR PRESS THE PHYSICAL POWER SWITCH.
+================================================================================
+`;
       addLogLine(victoryArt, 'system', true, 10);
     }
 
@@ -908,6 +1234,7 @@
           clientState.level = 1;
           clientState.commandHistory = [];
           clientState.historyIndex = -1;
+          clientState.completedObjectives = {};
           document.getElementById('footer-history-size').innerText = "History: 0 cmds";
           document.getElementById('flag-input').value = "";
           document.getElementById('flag-feedback').classList.add('hidden');
@@ -940,19 +1267,28 @@
         applyLevelTheme(clientState.level);
       }
 
+      // Calculate progress dynamically
+      const progressPct = Math.round((clientState.level / 33) * 100);
+
       // Update titles
       document.getElementById('hud-level-title').innerText = activeMeta.title;
-      document.getElementById('hud-progress-text').innerText = `${activeMeta.progress}%`;
-      document.getElementById('hud-progress-bar').style.width = `${activeMeta.progress}%`;
+      document.getElementById('hud-progress-text').innerText = `${progressPct}%`;
+      document.getElementById('hud-progress-bar').style.width = `${progressPct}%`;
 
       // Render objectives
       const objContainer = document.getElementById('hud-objectives');
       objContainer.innerHTML = '';
-      activeMeta.objectives.forEach(obj => {
+      const completedList = clientState.completedObjectives[clientState.level] || [];
+      activeMeta.objectives.forEach((obj, idx) => {
+        const isCompleted = completedList.includes(idx);
+        const checkClass = isCompleted 
+          ? 'w-3.5 h-3.5 rounded bg-amber-950/40 border flex items-center justify-center font-bold text-[9px] text-amber-500 select-none p-border'
+          : 'w-3.5 h-3.5 rounded border border-slate-700 bg-black flex items-center justify-center font-bold text-[9px] text-transparent select-none p-border';
+
         const item = document.createElement('div');
         item.className = 'flex items-start space-x-2 text-xs text-slate-400';
         item.innerHTML = `
-          <span class="w-3.5 h-3.5 rounded border border-slate-700 bg-black flex items-center justify-center font-bold text-[9px] text-transparent select-none p-border">✔</span>
+          <span class="${checkClass}">✔</span>
           <span class="cursor-pointer hover:underline" onclick="autofillCommand('${obj.trigger}')">${escapeHTML(obj.text)}</span>
         `;
         objContainer.appendChild(item);
@@ -963,14 +1299,19 @@
       treeContainer.innerHTML = '';
 
       const workspaceFiles = clientState.files || [];
-      const fileIcons = {
-        'briefing.txt': '📄',
-        '.hidden_flag': '🔒',
-        'access.log': '📊'
+      const getFileIcon = (name) => {
+        if (name === '.hidden_flag') return '🔒';
+        if (name === 'decrypt') return '⚙️';
+        if (name.endsWith('.log')) return '📊';
+        if (name.endsWith('.conf')) return '📄';
+        if (name.endsWith('.json')) return '⚙️';
+        if (name.endsWith('.sh')) return '⚡';
+        if (name.endsWith('.csv')) return '📊';
+        return '📄';
       };
 
       workspaceFiles.forEach(file => {
-        const icon = file.type === 'dir' ? '📁' : (fileIcons[file.name] || '📄');
+        const icon = file.type === 'dir' ? '📁' : getFileIcon(file.name);
         const cmd = file.type === 'dir' ? `cd ${file.name}; ls` : `cat ${file.name}`;
         
         const row = document.createElement('div');
@@ -1005,13 +1346,16 @@
 
     function checkObjectiveProgress(rawCmd) {
       const activeMeta = LEVEL_METADATA[clientState.level];
+      if (!activeMeta) return;
       const tokens = rawCmd.trim().split(/\s+/);
       const cmd = tokens[0].toLowerCase();
 
-      activeMeta.objectives.forEach((obj, idx) => {
-        const listItems = document.getElementById('hud-objectives').children;
-        if (!listItems[idx]) return;
+      if (!clientState.completedObjectives[clientState.level]) {
+        clientState.completedObjectives[clientState.level] = [];
+      }
+      const completedList = clientState.completedObjectives[clientState.level];
 
+      activeMeta.objectives.forEach((obj, idx) => {
         let complete = false;
         if (obj.trigger === 'pwd' && cmd === 'pwd') complete = true;
         if (obj.trigger === 'ls' && cmd === 'ls') complete = true;
@@ -1019,12 +1363,106 @@
         if (obj.trigger === 'cat briefing.txt' && rawCmd.includes('cat') && rawCmd.includes('briefing.txt')) complete = true;
         if (obj.trigger === 'cat .hidden_flag' && rawCmd.includes('cat') && rawCmd.includes('.hidden_flag')) complete = true;
         if (obj.trigger === 'cat access.log' && rawCmd.includes('cat') && rawCmd.includes('access.log')) complete = true;
-        if (obj.trigger === 'grep' && cmd === 'grep') complete = true;
+        if (obj.trigger === 'grep' && (cmd === 'grep' || rawCmd.includes('| grep') || rawCmd.includes('|grep'))) complete = true;
 
-        if (complete) {
-          const checkbox = listItems[idx].querySelector('span');
-          checkbox.classList.remove('text-transparent');
-          checkbox.className = 'w-3.5 h-3.5 rounded bg-amber-950/40 border flex items-center justify-center font-bold text-[9px] text-amber-500 select-none p-border';
+        // Level 4
+        if (obj.trigger === 'cd documents' && rawCmd.includes('cd') && rawCmd.includes('documents')) complete = true;
+        if (obj.trigger === 'cat doc.txt' && rawCmd.includes('cat') && rawCmd.includes('doc.txt')) complete = true;
+
+        // Level 5
+        if (obj.trigger === 'cd /var/log' && rawCmd.includes('cd') && (rawCmd.includes('/var/log') || rawCmd.includes('log'))) complete = true;
+        if (obj.trigger === 'cat sys.log' && rawCmd.includes('cat') && rawCmd.includes('sys.log')) complete = true;
+
+        // Level 6
+        if (obj.trigger === 'mkdir workspace' && rawCmd.includes('mkdir') && rawCmd.includes('workspace')) complete = true;
+
+        // Level 7
+        if (obj.trigger === 'cd workspace' && rawCmd.includes('cd') && rawCmd.includes('workspace')) complete = true;
+        if (obj.trigger === 'touch note.txt' && rawCmd.includes('touch') && rawCmd.includes('note.txt')) complete = true;
+
+        // Level 8
+        if (obj.trigger === 'cat source.txt' && rawCmd.includes('cat') && rawCmd.includes('source.txt')) complete = true;
+        if (obj.trigger === 'cp source.txt backup.txt' && rawCmd.includes('cp') && rawCmd.includes('source.txt') && rawCmd.includes('backup.txt')) complete = true;
+
+        // Level 9
+        if (obj.trigger === 'mv old.txt stable.txt' && rawCmd.includes('mv') && rawCmd.includes('old.txt') && rawCmd.includes('stable.txt')) complete = true;
+
+        // Level 10
+        if (obj.trigger === 'rm trash.txt' && rawCmd.includes('rm') && rawCmd.includes('trash.txt')) complete = true;
+
+        // Level 11
+        if (obj.trigger === 'head' && cmd === 'head') complete = true;
+        if (obj.trigger === 'head -n 3' && cmd === 'head' && rawCmd.includes('-n')) complete = true;
+
+        // Level 12
+        if (obj.trigger === 'tail' && cmd === 'tail') complete = true;
+        if (obj.trigger === 'tail -n 5' && cmd === 'tail' && rawCmd.includes('-n')) complete = true;
+
+        // Level 13
+        if (obj.trigger === 'less database.csv' && cmd === 'less' && rawCmd.includes('database.csv')) complete = true;
+
+        // Level 14
+        if (obj.trigger === 'nano config.json' && cmd === 'nano' && rawCmd.includes('config.json')) complete = true;
+
+        // Level 15
+        if (obj.trigger === 'vim script.sh' && cmd === 'vim' && rawCmd.includes('script.sh')) complete = true;
+
+        // Level 16
+        if (obj.trigger === 'whoami' && cmd === 'whoami') complete = true;
+
+        // Level 17
+        if (obj.trigger === 'uname' && cmd === 'uname') complete = true;
+
+        // Level 18
+        if (obj.trigger === 'df' && cmd === 'df') complete = true;
+
+        // Level 19
+        if (obj.trigger === 'chmod +x run.sh' && cmd === 'chmod' && rawCmd.includes('run.sh')) complete = true;
+
+        // Level 20
+        if (obj.trigger === 'chown' && (cmd === 'chown' || rawCmd.includes('chown'))) complete = true;
+
+        // Level 21
+        if (obj.trigger === 'sudo cat /etc/shadow' && rawCmd.includes('cat') && rawCmd.includes('/etc/shadow')) complete = true;
+
+        // Level 22
+        if (obj.trigger === 'system_status.txt' && rawCmd.includes('system_status.txt') && rawCmd.includes('>') && !rawCmd.includes('>>')) complete = true;
+
+        // Level 23
+        if (obj.trigger === 'patches.log' && rawCmd.includes('patches.log') && rawCmd.includes('>>')) complete = true;
+
+        // Level 24
+        if (obj.trigger === 'grep' && rawCmd.includes('|') && rawCmd.includes('grep')) complete = true;
+
+        // Level 25
+        if (obj.trigger === 'wc' && rawCmd.includes('|') && rawCmd.includes('wc')) complete = true;
+
+        // Level 26
+        if (obj.trigger === 'rm' && rawCmd.includes('rm') && rawCmd.includes('old_project')) complete = true;
+
+        // Level 27
+        if (obj.trigger === 'grep' && rawCmd.includes('grep') && rawCmd.includes('auth.log')) complete = true;
+
+        // Level 28
+        if (obj.trigger === 'cp' && rawCmd.includes('cp') && rawCmd.includes('template') && rawCmd.includes('backup_template')) complete = true;
+
+        // Level 29
+        if (obj.trigger === 'find' && rawCmd.includes('find')) complete = true;
+
+        // Level 30
+        if (obj.trigger === 'cat part' && rawCmd.includes('cat') && rawCmd.includes('part')) complete = true;
+
+        // Level 31
+        if (obj.trigger === 'base64' && rawCmd.includes('base64')) complete = true;
+
+        // Level 32
+        if (obj.trigger === 'env' && (cmd === 'env' || cmd === 'printenv')) complete = true;
+
+        // Level 33
+        if (obj.trigger === './decrypt' && (cmd === './decrypt' || rawCmd.includes('decrypt'))) complete = true;
+
+        if (complete && !completedList.includes(idx)) {
+          completedList.push(idx);
         }
       });
     }
